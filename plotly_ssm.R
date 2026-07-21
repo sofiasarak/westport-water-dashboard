@@ -12,6 +12,12 @@ library(plotly)
 # read in ssm data
 ssm <- read_csv(here("data", "ssm.csv"))
 
+# read in river geometry data
+westport_geo <- read_sf(here("data", "westport_ssm_coords.geojson"))  %>% 
+  
+  # arrange by row id
+  arrange(seq_id)
+
 # drop rows with NA longitudes, latitudes, and percent_exceeded
 ssm <- ssm %>% 
   
@@ -24,18 +30,18 @@ ssm <- ssm %>%
 # initialize plotly
 plot <- plot_ly()
 
-# ## RIVER GEO (LINE)
-# 
-# plot <- plot %>%
-#   add_trace(data = new_creek_coords,
-#             lat = ~Y, lon = ~X,
-#             split = ~site, # treats segments differently based on the site they correspond to
-#             frame = ~year,
-#             color = ~percent_exceeded, # color by perc site exceeded ssm
-#             type = "scattermapbox", mode = "lines",
-#             line = list(width = 3), # adjust width
-#             showlegend = FALSE, hoverinfo = "skip",
-#             showscale = FALSE) # tried to get rid of second "percent_exceeded" - might have to make static legend
+## RIVER GEO (LINE)
+
+plot <- plot %>%
+  add_trace(data = westport_geo,
+            lat = ~Y, lon = ~X,
+            split = ~L2, # treats segments differently based on the site they correspond to
+            frame = ~year,
+            color = ~percent_exceeded, # color by perc site exceeded ssm
+            type = "scattermapbox", mode = "lines",
+            line = list(width = 3), # adjust width
+            showlegend = FALSE, hoverinfo = "skip",
+            showscale = FALSE) # tried to get rid of second "percent_exceeded" - might have to make static legend
 
 ## OUTLINE POINTS 
 # add dark gray outline to markers
