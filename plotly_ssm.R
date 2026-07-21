@@ -35,7 +35,7 @@ plot <- plot_ly()
 plot <- plot %>%
   add_trace(data = westport_geo,
             lat = ~Y, lon = ~X,
-            split = ~L2, # treats segments differently based on the site they correspond to
+            split = ~L2, # treats segments differently based on the site they correspond to (can also try L1)
             frame = ~year,
             color = ~percent_exceeded, # color by perc site exceeded ssm
             type = "scattermapbox", mode = "lines",
@@ -63,7 +63,7 @@ plot <- plot |>
             marker = list(size = 14),
             
             # add hover
-            text = ~paste0("<b>", site_name, "</b><br>% Exceeded SSM: ", percent_exceeded),
+            text = ~paste0("<b>", site_name, "</b><br>% Exceeded SSM: ", round(percent_exceeded,2) * 100),
             hoverinfo = "text", showlegend = FALSE)
 
 
@@ -91,7 +91,7 @@ plot <- plot %>%
     
     # set basemap, initial zoom
     mapbox = list(
-      style = "open-street-map",
+      style = "carto-positron", # original basemap was "open-street-map"
       center = list(lat = 41.12076, lon = -73.3151),
       zoom = 13
     ),
@@ -102,7 +102,7 @@ plot <- plot %>%
   ) %>% 
   
   # changes speed of animation when "play" is hit
-  animation_opts(frame = 1000)
+  animation_opts(frame = 500)
 
 # call plot
 plot
