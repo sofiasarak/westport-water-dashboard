@@ -22,11 +22,10 @@ max <- read_csv(here("data", "max.csv"))
 ##                              prepare geometries                          ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# convert westport geom to smooth segments
-westport_seg <- st_segmentize(westport_geo, dfMaxLength = 50)
-
 # extract the coordinates along the entire line segment
 westport_coords <- sf::st_coordinates(westport_geo) %>% as.data.frame() %>% 
+  
+  mutate(seq_id = row_number()) %>% 
   
   # convert coordinates to an sf object
   st_as_sf(coords = c("X", "Y"), crs = st_crs(westport_geo)) 
