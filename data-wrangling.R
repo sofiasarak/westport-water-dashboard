@@ -107,6 +107,42 @@ max <- max %>%
   distinct()
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                    assign sampling sites to river names                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ssm
+
+ssm <- ssm %>% 
+  
+  mutate(river_name = case_when(
+    
+    # indian
+    str_detect(site_name, "Indian") ~ "Indian River",
+    
+    # sasco
+    str_detect(site_name, "Sasco|Hunt") ~ "Sasco Brook",
+    
+    # saugatuck
+    str_detect(site_name, "Poplar|SG|Saug") ~ "Saugatuck River",
+    
+    # green farms
+    str_detect(site_name, "New") ~ "Greens Farms Brook",
+    
+    # muddy
+    str_detect(site_name, "Muddy") ~ "Muddy Brook",
+    
+    # pussy willow
+    str_detect(site_name, "Pussy|Lamplight") ~"Pussy Willow Brook",
+    
+    # deadman
+    str_detect(site_name, "Deadman") ~ "Deadman Brook", 
+    
+    # stony
+    str_detect(site_name, "Stony") ~"Stony Brook",
+    
+    .default = NA))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                  save files                              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

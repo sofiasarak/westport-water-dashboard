@@ -25,6 +25,9 @@ greens_farms <- read_sf(here("data", "geoms", "Greens Farms Brook (Westport)-01.
 ssm <- read_csv(here("data", "ssm.csv"))
 max <- read_csv(here("data", "max.csv"))
 
+# read in sampling years
+sampling_years <- read_csv(here("data", "westport_sampling_years.csv"))
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                              prepare geometries                          ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,6 +37,54 @@ westport_geo <- rbind(westport_1, pussy_willow, stony_brook_1, stony_brook_2, we
 
 # ensure geometry type is consistent throughout - cast to LINESTRING
 westport_geo <- st_cast(westport_geo, "MULTILINESTRING")
+
+#........add variable denoting which river geo belongs to........
+
+westport_geo <- westport_geo %>% 
+  mutate(river_name = case_when(
+    
+    # indian river
+    ASSESSMENT_UNIT_NAME %in% c("Indian River (Westport)-01","Indian River (Westport)-02") ~ "Indian River",
+    
+    # saugatuck
+    ASSESSMENT_UNIT_NAME %in% c("Poplar Plains Brook (Westport)-01", "Aspetuck River (Westport-Easton)-01","Saugatuck River (Westport)-01", "West Branch Saugatuck River (Westport/Weston)-01") ~ "Saugatuck River",
+    
+    # pussy willow
+    ASSESSMENT_UNIT_NAME == "Unnamed tributary Sherwood Millpond LIS (Westport)-01" ~ "Pussy Willow Brook",
+    
+    # muddy 
+    ASSESSMENT_UNIT_NAME == "Muddy Brook (Westport)-01" ~ "Muddy Brook",
+    
+    #sasco
+    ASSESSMENT_UNIT_NAME %in% c("Sasco Brook (Westport/Fairfield)-01",  "Sasco Brook (Westport/Fairfield)-02") ~ "Sasco Brook",
+    
+    # deadman
+    ASSESSMENT_UNIT_NAME == "Deadman Brook (Westport/Fairfield)-01" ~ "Deadman Brook",
+    
+    # greens farms/new
+    ASSESSMENT_UNIT_NAME == "Greens Farms Brook (Westport)-01" ~ "Greens Farms Brook",
+    
+    # stony
+    ASSESSMENT_UNIT_NAME %in% c("Stony Brook (Westport)-01", "Stony Brook (Westport/Norwalk/Wilton)-02") ~ "Stony Brook",
+    
+    .default = NA
+  ))
+
+#......................join sampling years.......................
+
+westport_geo <- sampling_years %>% 
+  
+  # join on river name
+  left_join(westport_geo, by = c("river" = "river_name"),
+            relationship = "many-to-many") %>% 
+  
+  st_as_sf()
+
+names(st_geometry(westport_geo)) = NULL
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                            make into coordinates                         ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # extract the coordinates along the entire line segment
 westport_coords <- sf::st_coordinates(westport_geo) %>% as.data.frame() %>% 
