@@ -61,6 +61,21 @@ server <- function(input, output, session) {
     
   }) # end reactive df for river table
   
+  # # river conc test
+  # filtered_leaflet_geos <- reactive({
+  #   
+  #   df_geos <- river_conc_test
+  #   
+  #   # year
+  #   if(length(input$year) > 0)
+  #     df_geos <- df_geos %>% filter(year == input$year)
+  #   
+  #   # stream name
+  #   if(length(input$river_name) > 0)
+  #     df_geos <- df_geos %>% filter(river %in% input$river_name)
+  #   
+  #   df_geos
+  # })
   
   #............................basemap.............................
   

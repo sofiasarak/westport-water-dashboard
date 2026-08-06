@@ -86,3 +86,7 @@ westport_geo <- sampling_years %>%
 
 # remove geometyr "names" -- necessary for plotting 
 names(st_geometry(westport_geo)) = NULL
+
+
+# test geo
+# river_conc_test <- read_sf(here("data", "river_conc_test.geojson")) # takes a few secs

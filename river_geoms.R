@@ -94,27 +94,34 @@ names(st_geometry(westport_geo)) = NULL
 rivers <- unique(westport_geo$river)
 years <- unique(ssm$year)
 
-# initialize empty list to fill using for loop
-segs_list <- list()
+all_segs <- list()
+i <- 1
 
-# start for loop, iterating over rivers and years
 for (r in rivers) {
   for (y in years) {
     
-    # filter westport geometries for river 
+    # filter westport geometries for river
     geo_r <- westport_geo[westport_geo$river == r, ]
     
     # create coordinates from line (river) geometries
     coords <- st_coordinates(geo_r)[, 1:2]
     
     # create small segments from coordinates
-    segs <- lapply(1:(nrow(coords) - 1), function(i) st_linestring(coords[i:(i+1), ]))
-    segs <- st_sf(geometry = st_sfc(segs, crs = st_crs(westport_geo)), river = r)
+    segs <- lapply(1:(nrow(coords) - 1), function(i)
+      st_linestring(coords[i:(i + 1), ]))
+    segs <- st_sf(
+      geometry = st_sfc(segs, crs = st_crs(westport_geo))
+    )
     
-    # find midpoint of each coordinate 
+    # find midpoint of each segment
     mid_coords <- (coords[-nrow(coords), ] + coords[-1, ]) / 2
-    mids <- st_sf(geometry = st_sfc(lapply(1:nrow(mid_coords), function(i)
-      st_point(mid_coords[i, ])), crs = st_crs(westport_geo))) %>%
+    mids <- st_sf(
+      geometry = st_sfc(
+        lapply(1:nrow(mid_coords), function(i)
+          st_point(mid_coords[i, ])),
+        crs = st_crs(westport_geo)
+      )
+    ) %>%
       st_transform(st_crs(ssm))
     
     ssm_ry <- ssm[ssm$river_name == r & ssm$year == y, ]
@@ -126,48 +133,48 @@ for (r in rivers) {
       segs$conc <- ssm_ry$percent_exceeded[nearest]
     }
     
-    # compile df
-    segs <- segs %>% 
-      
-      # remove where conc is NA (for computing speed)
-      filter(!is.na(conc)) %>% 
-      
-      # add year as a column
-      mutate(year = y)
+    segs <- segs %>%
+      filter(!is.na(conc)) %>%
+      mutate(
+        river = r,
+        year = y
+      )
     
-    segs_list[[paste(r, y)]] <- segs
+    all_segs[[i]] <- segs
+    i <- i + 1
   }
 }
 
-segs <- do.call(rbind, segs_list)
+final_df <- dplyr::bind_rows(all_segs)
 
+st_write(final_df, "data/river_conc_test.geojson")
 
-segs_list <- lapply(rivers, function(r) {
-  
-  geo_r <- westport_geo[westport_geo$river == r, ]
-  coords <- st_coordinates(geo_r)[, 1:2]
-  
-  # build segments for this river only
-  segs <- lapply(1:(nrow(coords) - 1), function(i) st_linestring(coords[i:(i+1), ]))
-  segs <- st_sf(geometry = st_sfc(segs, crs = st_crs(westport_geo)), river = r)
-  
-  # midpoints for this river's segments
-  mid_coords <- (coords[-nrow(coords), ] + coords[-1, ]) / 2
-  mids <- st_sf(geometry = st_sfc(lapply(1:nrow(mid_coords), function(i)
-    st_point(mid_coords[i, ])), crs = st_crs(westport_geo))) %>%
-    st_transform(st_crs(ssm))
-  
-  # filter ssm for just this river, too
-  ssm_r <- ssm[ssm$river_name ==r, ]
-  
-  # nearest sample site per midpoint
-  nearest <- st_nearest_feature(mids, ssm_r)
-  segs$conc <- ssm$percent_exceeded[nearest]
-  
-  segs
-})
-
-segs <- do.call(rbind, segs_list)
+# segs_list <- lapply(rivers, function(r) {
+#   
+#   geo_r <- westport_geo[westport_geo$river == r, ]
+#   coords <- st_coordinates(geo_r)[, 1:2]
+#   
+#   # build segments for this river only
+#   segs <- lapply(1:(nrow(coords) - 1), function(i) st_linestring(coords[i:(i+1), ]))
+#   segs <- st_sf(geometry = st_sfc(segs, crs = st_crs(westport_geo)), river = r)
+#   
+#   # midpoints for this river's segments
+#   mid_coords <- (coords[-nrow(coords), ] + coords[-1, ]) / 2
+#   mids <- st_sf(geometry = st_sfc(lapply(1:nrow(mid_coords), function(i)
+#     st_point(mid_coords[i, ])), crs = st_crs(westport_geo))) %>%
+#     st_transform(st_crs(ssm))
+#   
+#   # filter ssm for just this river, too
+#   ssm_r <- ssm[ssm$river_name ==r, ]
+#   
+#   # nearest sample site per midpoint
+#   nearest <- st_nearest_feature(mids, ssm_r)
+#   segs$conc <- ssm$percent_exceeded[nearest]
+#   
+#   segs
+# })
+# 
+# segs <- do.call(rbind, segs_list)
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
