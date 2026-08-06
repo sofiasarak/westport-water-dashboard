@@ -69,7 +69,7 @@ ssm <- westport %>%
   group_by(year, site_name) %>% 
   
   # create a times exceeded column as well as
-  summarize(times_exceeded = sum(exceed_ssm),
+  summarize(times_exceeded = sum(exceed_ssm, na.rm = TRUE),
             
             # percent of times exceeded         
             percent_exceeded = times_exceeded / n())
@@ -142,9 +142,63 @@ ssm <- ssm %>%
     
     .default = NA))
 
+# do the same but with all data
+westport <- westport %>% 
+  
+  mutate(river_name = case_when(
+    
+    # indian
+    str_detect(site_name, "Indian") ~ "Indian River",
+    
+    # sasco
+    str_detect(site_name, "Sasco|Hunt") ~ "Sasco Brook",
+    
+    # saugatuck
+    str_detect(site_name, "Poplar|SG|Saug") ~ "Saugatuck River",
+    
+    # green farms
+    str_detect(site_name, "New") ~ "Greens Farms Brook",
+    
+    # muddy
+    str_detect(site_name, "Muddy") ~ "Muddy Brook",
+    
+    # pussy willow
+    str_detect(site_name, "Pussy|Lamplight") ~"Pussy Willow Brook",
+    
+    # deadman
+    str_detect(site_name, "Deadman") ~ "Deadman Brook", 
+    
+    # stony
+    str_detect(site_name, "Stony") ~"Stony Brook",
+    
+    .default = NA))
+
+# some more cleaning (keep only necessary columns)
+westport <- westport %>% 
+  
+  select(site_name, date, indicator, conc, river_name, year) %>% 
+  
+  # drop if conc == NA 
+  filter(!is.na(conc)) %>% 
+  
+  # round conc values
+  mutate(conc = round(conc)) %>% 
+  
+  # create date with no year column
+  mutate(date_no_year = str_remove(date, "^.{5}"))
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                  save files                              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 write_csv(ssm, "data/ssm.csv")
 write_csv(max, "data/max.csv")
+write_csv(westport, "data/all_westport.csv")
+
+
+westport_try <- westport %>%
+  filter(year == 2010, river_name == "Saugatuck River") %>%
+  pivot_wider(names_from = date_no_year, values_from = conc, 
+              
+              # collapse concentrations from same site, same day to mean
+              values_fn = mean)
