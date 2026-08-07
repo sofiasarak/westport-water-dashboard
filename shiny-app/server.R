@@ -33,7 +33,7 @@ server <- function(input, output, session) {
   # river geometries --
   filtered_leaflet_geos <- reactive({
     
-    df_geos <- westport_geo
+    df_geos <- ssm_segments
     
     # year
     if(length(input$year) > 0)
@@ -110,13 +110,16 @@ server <- function(input, output, session) {
         popup = ~paste0("<strong>", site_name,"</strong> <br>SSM exceeded: ", round(percent_exceeded * 100), "% of the time")
       ) # popup when hovered over %>% 
     
+    #......................add river geometries......................
+    
     df_geos <- filtered_leaflet_geos()
     
     leafletProxy("map", data = df_geos) %>%
       
       clearShapes() %>%  # remove old lines
       
-      addPolylines(popup = ~ASSESSMENT_UNIT_NAME)
+      addPolylines(popup = ~river_name,
+                   color = ~pal(percent_exceeded)) #ASSESSMENT_UNIT_NAME
   })
   
   

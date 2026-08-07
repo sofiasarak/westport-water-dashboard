@@ -14,6 +14,10 @@ library(DT)
 library(plotly)
 
 #..........................read in data..........................
+# segments
+ssm_segments <- read_sf(here("data", "ssm_segments.geojson"))
+
+
 # bacteria summary (ssm)
 ssm <- read_csv(here("data", "ssm.csv")) 
 
