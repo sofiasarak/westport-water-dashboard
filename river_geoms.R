@@ -86,6 +86,9 @@ westport_geo <- sampling_years %>%
 
 names(st_geometry(westport_geo)) = NULL
 
+# save complete westport as geo
+st_write(westport_geo, "data/westport_geo.geojson")
+
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                 segmentize                               ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

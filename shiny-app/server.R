@@ -6,7 +6,7 @@ server <- function(input, output, session) {
   
   # create palette that matches up with percent_exceeded
   pal <- colorFactor(
-    palette = c("blue", "red"), 
+    palette = c("forestgreen", "red"), 
     domain = ssm$percent_exceeded
   )
   
@@ -86,7 +86,7 @@ server <- function(input, output, session) {
       addProviderTiles(providers$CartoDB.Positron) %>%
       
       # set initial zoom
-      setView(lng = -73.3151, lat = 41.12076, zoom = 13) 
+      setView(lng = -73.33419, lat = 41.16502, zoom = 12) 
     
     #addLegend("bottomright", pal = pal, values = pal_range, title = "% Exceeded SSM",
     # labFormat = labelFormat(suffix = "%", transform = function(x) x * 100))
@@ -118,7 +118,7 @@ server <- function(input, output, session) {
       
       clearShapes() %>%  # remove old lines
       
-      addPolylines(popup = ~river_name,
+      addPolylines(popup = ~paste0(as.character(round(percent_exceeded * 100)), "%"),
                    color = ~pal(percent_exceeded)) #ASSESSMENT_UNIT_NAME
   })
   
@@ -162,11 +162,15 @@ server <- function(input, output, session) {
         select(-c(river_name, year))  %>% 
         
         # remove columns that are entirely NA
-        select(where(~ !all(is.na(.)))) ,
+        select(where(~ !all(is.na(.)))) %>% 
+        
+        # order numerically
+        select(site_name, indicator, sort(names(.)[-c(1,2)])),
       
       # table details
       rownames = FALSE, 
-      options = list(pageLength = 9, 
+      options = list(scrollX = TRUE,
+                     pageLength = 9, 
                      dom = 'rtip' # remove search bar and length dropdown
                      
                      # use CSS to assign table header the sector color 

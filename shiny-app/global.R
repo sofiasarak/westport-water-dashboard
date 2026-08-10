@@ -12,10 +12,11 @@ library(dplyr)
 library(shinyWidgets)
 library(DT)
 library(plotly)
+library(shinydashboard)
 
 #..........................read in data..........................
 # segments
-ssm_segments <- read_sf(here("data", "ssm_segments.geojson"))
+ssm_segments <- read_sf(here("data", "checkpoint3.geojson"))
 
 
 # bacteria summary (ssm)
