@@ -150,35 +150,59 @@ server <- function(input, output, session) {
                 # collapse concentrations from same site, same day to mean
                 values_fn = mean)
     
+    table_data <- # select data just for that river
+      all_westport[all_westport$river_name == clicked_river(), ] %>% 
+      
+      # remove river name and year once filtered for -- displayed in header instead
+      select(-c(river_name, year))  %>% 
+      
+      # remove columns that are entirely NA
+      select(where(~ !all(is.na(.)))) %>% 
+      
+      # order date columns numerically
+      select(site_name, indicator, sort(names(.)[-c(1,2)])) %>% 
+      
+      # clean up header names
+      rename("Sampling\nSite" = site_name,
+             "Indicator" = indicator) %>% 
+      
+      # change date formatting (from 05-08 to 5/08)
+      rename_with(~ str_replace(., "^0(\\d+)-", "\\1/"), .cols = -(1:2))
+    
     # initialize table
     datatable(
       
-      # select data just for that river
-      all_westport[all_westport$river_name == clicked_river(), ] %>% 
-        
-        # remove river name and year once filtered for -- displayed in header instead
-        select(-c(river_name, year))  %>% 
-        
-        # remove columns that are entirely NA
-        select(where(~ !all(is.na(.)))) %>% 
-        
-        # order date columns numerically
-        select(site_name, indicator, sort(names(.)[-c(1,2)])) %>% 
-        
-        # clean up header names
-        rename("Sampling\nSite" = site_name,
-               "Indicator" = indicator) %>% 
-      
-        # change date formatting (from 05-08 to 5/08)
-        rename_with(~ str_replace(., "^0(\\d+)-", "\\1/"), .cols = -(1:2)),
+      table_data,
       
       # table details
       rownames = FALSE, # remove row numbers
       width = "100%",
       options = list(scrollX = TRUE, # scroll to see additional columns
                      pageLength = 15,  # removes need to click onto other page to see all sites
-                     dom = 'rtip') # remove search bar and length dropdown
-                     )
+                     dom = 'rtip', # remove search bar and length dropdown
+                     rowCallback = JS(sprintf(
+                       "function(row, data) {
+    var dateCols = [%s];
+    var indicator = data[1];
+    var threshold = indicator === 'e.coli' ? 126 : 35;
+    dateCols.forEach(function(i) {
+      var val = parseFloat(data[i]);
+      if (val > threshold) $('td:eq(' + i + ')', row).css('color', 'red');
+    });
+  }",
+                       paste((3:ncol(table_data)) - 1, collapse = ",")
+                     ))) 
+     
+                     ) 
+      
+      # make data points that exceed the SSM red
+      # formatStyle(
+      #   names(table_data)[-(1:2)], # select for all columns other than first two
+      #   valueColumns = "Indicator",
+      #   color = JS(
+      #     "value1 === 'e.coli' ? (value > 126 ? 'red' : 'black') : (value > 35 ? 'red' : 'black')"
+      #   )
+      # )
   })
 
   #................add river and year heading based on click and year...............

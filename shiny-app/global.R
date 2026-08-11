@@ -18,7 +18,6 @@ library(shinydashboard)
 # segments
 ssm_segments <- read_sf(here("data", "checkpoint3.geojson"))
 
-
 # bacteria summary (ssm)
 ssm <- read_csv(here("data", "ssm.csv")) 
 

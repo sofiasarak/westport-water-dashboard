@@ -59,13 +59,13 @@ westport <- westport %>%
 
 # summarize by summing the number of times SSM was exceeded for each site, for each year
 ssm <- westport %>% 
-  group_by(year, site_name) %>% 
+  group_by(year, site_name) %>%  # add indicator
   
   # create a times exceeded column as well as
   summarize(times_exceeded = sum(exceed_ssm, na.rm = TRUE),
             
             # percent of times exceeded         
-            percent_exceeded = times_exceeded / n())
+            percent_exceeded = times_exceeded / sum(!is.na(exceed_ssm)))
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                            find site max by year*                         ----
