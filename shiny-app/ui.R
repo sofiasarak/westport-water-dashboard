@@ -43,7 +43,7 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
     # welcome tabItem ----
     tabItem(
       
-      tabName = "dashboard", # will know that everything I build here should show up on welcome tab above
+      tabName = "dashboard", # will know that everything I build here should show up on dashboard tab
       
      # top block (map, text, and inputs)
       fluidRow(
@@ -60,22 +60,29 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
             
            
            # leaflet map
-           leafletOutput("map", height = 700)
-        )  # END background box
+           leafletOutput("map", height = 700),
+           
+           
+           # map disclaimer
+           div(style = "font-size: 12px;", includeMarkdown("text/map_disclaimer.Rmd"))
+        )  # END leaflet box
         
       ), # END lefthand column
       
       # right-hand column ----
       column(width = 4,
              
-             div(style = "font-size: 14px;", includeMarkdown("text/inputs_intro.Rmd")),
+             # input intro text
+             div(style = "font-size: 14.5px;", includeMarkdown("text/inputs_intro.Rmd")),
              
              # data filter inputs box ----
              box(width = NULL,
+                 
+                 # year slider
                  sliderInput("year", "Select year", min = min(years), max = max(years),
                              value = min(years), step = 1, sep = "", animate = animationOptions(interval = 500)),
                  
-                 # dropdown to pick river
+                # dropdown to pick river
                  pickerInput(
                    inputId  = "river_name",
                    label    = "Select stream",
@@ -86,7 +93,7 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
              ), # end data filter inputs box
              
              # text about using ssm
-             div(style = "font-size: 14px;", includeMarkdown("text/about_ssm.Rmd"))
+             div(style = "font-size: 14.5px;", includeMarkdown("text/about_ssm.Rmd"))
            
              
       ) # END right-hand column
@@ -95,15 +102,23 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
      # row with table output
      fluidRow(
        
+       # set column size so that it is centered but doesn't occupy entire page
        column(
-         width = 10,
-         offset = 1,  # (12 - 8) / 2, centers it
+         width = 11,
+         offset = 0.5,  # (12 - 11) / 2, centers it
        
        # data table box ----
        box(
          width = NULL,
+         
+         # text telling user to click on points
+         div(style = "font-size: 14px;", includeMarkdown("text/table_output_intro.Rmd")),
+         
          # header
-         h4(textOutput("table_heading")),
+         h4(strong(textOutput("table_heading"))),
+         
+         # bacteria units
+         div(style = "font-size: 14px;", includeMarkdown("text/bacteria_units_table.Rmd")),
          
          # table
          DTOutput("table")
@@ -115,7 +130,7 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
       
     ), # END welcome tabItem
     
-    # dashboard tabItem ----
+    # about tabItem ----
     tabItem(
       
       tabName = "about",

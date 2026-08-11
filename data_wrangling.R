@@ -1,10 +1,3 @@
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                                                                            --
-##------------- WRANGLING RAW EARTHPLACE DATA FOR PLOTLY FORMAT-----------------
-##                                                                            --
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# load necessary libraries
 library(readxl)
 library(here)
 library(tidyverse)
@@ -25,7 +18,7 @@ westport_sites <- c("Indian", "Stony", "SG1", "Saugatuck", "West Saug",
                     "Poplar", "Deadman", "Apetuck 1", "Apetuck 2", "Apetuck 3",
                     "Muddy", "New", "Lamplight", "Pussy Willow", "Sasco", "Hunt Club")
 
-# towns are listed in the variable `towns` - we will select rows where "Westport is listed as one of the towns"
+# towns are listed in the variable `towns` - we will select rows where "Westport" is listed as one of the towns
 westport <- raw %>% 
   
   filter(str_detect(towns, "Westport")) %>% 
@@ -33,14 +26,14 @@ westport <- raw %>%
   # select for only westport sampling site names (removes trackdown projects, etc)
   filter(str_detect(site_name, paste(str_escape(westport_sites), collapse = "|")))
 
-# select only the variables we need for our plotly
+# select only the variables we need for our leaflet
 westport <- westport %>% 
   
   select(site_name, date, year, month,
          actual_and_estimated_e_coli_100m_l,
          enterococci_100_m_l, latitude, longitude)
 
-# pivot to long former
+# pivot to long format
 westport  <- westport %>% 
   
   # shorten column names
@@ -75,7 +68,7 @@ ssm <- westport %>%
             percent_exceeded = times_exceeded / n())
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##                            find site max by year                         ----
+##                            find site max by year*                         ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 max <- westport %>% 
@@ -83,6 +76,8 @@ max <- westport %>%
   group_by(year, site_name) %>% 
   
   summarize(max = max(conc, na.rm = TRUE))
+
+# *this variable does not end up being used in the final dashboard
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                 add coordinates back in based on site name               ----
@@ -191,14 +186,9 @@ westport <- westport %>%
 ##                                  save files                              ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-write_csv(ssm, "data/ssm.csv")
-write_csv(max, "data/max.csv")
+# data points by year (for plotting)
+write_csv(ssm, "data/ssm.csv") 
+# write_csv(max, "data/max.csv")
+
+# all data points with no geoms (for table)
 write_csv(westport, "data/all_westport.csv")
-
-
-westport_try <- westport %>%
-  filter(year == 2010, river_name == "Saugatuck River") %>%
-  pivot_wider(names_from = date_no_year, values_from = conc, 
-              
-              # collapse concentrations from same site, same day to mean
-              values_fn = mean)

@@ -5,10 +5,7 @@
 server <- function(input, output, session) {
   
   # create palette that matches up with percent_exceeded
-  pal <- colorFactor(
-    palette = c("forestgreen", "red"), 
-    domain = ssm$percent_exceeded
-  )
+  pal <- colorNumeric(palette = c("forestgreen", "red"), domain = c(0, 1)) 
   
   #..........filter data based on slider/dropdown choices..........
   
@@ -60,36 +57,19 @@ server <- function(input, output, session) {
     df_all
     
   }) # end reactive df for river table
-  
-  # # river conc test
-  # filtered_leaflet_geos <- reactive({
-  #   
-  #   df_geos <- river_conc_test
-  #   
-  #   # year
-  #   if(length(input$year) > 0)
-  #     df_geos <- df_geos %>% filter(year == input$year)
-  #   
-  #   # stream name
-  #   if(length(input$river_name) > 0)
-  #     df_geos <- df_geos %>% filter(river %in% input$river_name)
-  #   
-  #   df_geos
-  # })
+
   
   #............................basemap.............................
   
   output$map <- renderLeaflet({
+    
     leaflet() %>%
-      
       
       addProviderTiles(providers$CartoDB.Positron) %>%
       
       # set initial zoom
       setView(lng = -73.33419, lat = 41.16502, zoom = 12) 
     
-    #addLegend("bottomright", pal = pal, values = pal_range, title = "% Exceeded SSM",
-    # labFormat = labelFormat(suffix = "%", transform = function(x) x * 100))
   })
   
   # add filtered points ---
@@ -101,14 +81,29 @@ server <- function(input, output, session) {
       
       clearMarkers() %>%    # remove old markers when new selection made
       
+      clearControls() %>%   # remove old legend before adding new one
+      
       addCircleMarkers(
         lng = ~longitude,
         lat = ~latitude,
-        layerId = ~site_name,   # unique per marker
+        layerId = ~site_name,   # unique per marker, ensures proper plotting
         color = ~pal(percent_exceeded),
         fillColor = ~pal(percent_exceeded),
+        
+        # shows sampling site name and % exceeded when clicked on
         popup = ~paste0("<strong>", site_name,"</strong> <br>SSM exceeded: ", round(percent_exceeded * 100), "% of the time")
-      ) # popup when hovered over %>% 
+      ) %>% 
+      
+      # add legend
+      addLegend(
+        position = "bottomright",
+        pal = pal,
+        values = ~percent_exceeded,
+        title = "% Exceeded",
+        
+        # label format: multiplies by 100 and adds % suffix
+        labFormat = labelFormat(suffix = "%", transform = function(x) x * 100) 
+      )
     
     #......................add river geometries......................
     
@@ -118,8 +113,8 @@ server <- function(input, output, session) {
       
       clearShapes() %>%  # remove old lines
       
-      addPolylines(popup = ~paste0(as.character(round(percent_exceeded * 100)), "%"),
-                   color = ~pal(percent_exceeded)) #ASSESSMENT_UNIT_NAME
+      addPolylines(popup = ~river, # show river name when clicked
+                   color = ~pal(percent_exceeded)) 
   })
   
   
@@ -146,8 +141,10 @@ server <- function(input, output, session) {
     # pivot to table format (dates in columns, sites in rows)
     all_westport <- all_westport %>% 
       
+      # remove date column
       select(-date) %>% 
       
+      # pivot so that each column is a date
       pivot_wider(names_from = date_no_year, values_from = conc, 
                 
                 # collapse concentrations from same site, same day to mean
@@ -159,29 +156,36 @@ server <- function(input, output, session) {
       # select data just for that river
       all_westport[all_westport$river_name == clicked_river(), ] %>% 
         
+        # remove river name and year once filtered for -- displayed in header instead
         select(-c(river_name, year))  %>% 
         
         # remove columns that are entirely NA
         select(where(~ !all(is.na(.)))) %>% 
         
-        # order numerically
-        select(site_name, indicator, sort(names(.)[-c(1,2)])),
+        # order date columns numerically
+        select(site_name, indicator, sort(names(.)[-c(1,2)])) %>% 
+        
+        # clean up header names
+        rename("Sampling\nSite" = site_name,
+               "Indicator" = indicator) %>% 
+      
+        # change date formatting (from 05-08 to 5/08)
+        rename_with(~ str_replace(., "^0(\\d+)-", "\\1/"), .cols = -(1:2)),
       
       # table details
-      rownames = FALSE, 
-      options = list(scrollX = TRUE,
-                     pageLength = 9, 
-                     dom = 'rtip' # remove search bar and length dropdown
-                     
-                     # use CSS to assign table header the sector color 
-                     ))
+      rownames = FALSE, # remove row numbers
+      width = "100%",
+      options = list(scrollX = TRUE, # scroll to see additional columns
+                     pageLength = 15,  # removes need to click onto other page to see all sites
+                     dom = 'rtip') # remove search bar and length dropdown
+                     )
   })
 
   #................add river and year heading based on click and year...............
   
-  # sector label heading 
+  # river and year label heading 
   output$table_heading <- renderText({
-    req(clicked_river())
+    req(clicked_river()) # sourced from point that is clicked
     paste0(clicked_river(),", ", input$year)
   }) 
   
