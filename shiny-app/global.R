@@ -15,7 +15,10 @@ library(plotly)
 library(shinydashboard)
 
 #..........................read in data..........................
-# segments
+# static segments
+static_segments <- read_sf(here("data", "static_segments.geojson"))
+
+# segments w yearly data
 ssm_segments <- read_sf(here("data", "checkpoint3.geojson"))
 
 # bacteria summary (ssm)

@@ -180,6 +180,8 @@ server <- function(input, output, session) {
       options = list(scrollX = TRUE, # scroll to see additional columns
                      pageLength = 15,  # removes need to click onto other page to see all sites
                      dom = 'rtip', # remove search bar and length dropdown
+                     
+                     # code to color table data conditionally, based on if SSM is exceeded
                      rowCallback = JS(sprintf(
                        "function(row, data) {
     var dateCols = [%s];
@@ -194,15 +196,6 @@ server <- function(input, output, session) {
                      ))) 
      
                      ) 
-      
-      # make data points that exceed the SSM red
-      # formatStyle(
-      #   names(table_data)[-(1:2)], # select for all columns other than first two
-      #   valueColumns = "Indicator",
-      #   color = JS(
-      #     "value1 === 'e.coli' ? (value > 126 ? 'red' : 'black') : (value > 35 ? 'red' : 'black')"
-      #   )
-      # )
   })
 
   #................add river and year heading based on click and year...............

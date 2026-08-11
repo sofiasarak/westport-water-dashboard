@@ -60,6 +60,8 @@ westport_geo <- westport_geo %>%
     .default = NA
   ))
 
+st_write(westport_geo, "data/static_segments.geojson")
+
 #......................join sampling years.......................
 
 westport_geo <- sampling_years %>% 
