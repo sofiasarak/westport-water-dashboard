@@ -58,7 +58,9 @@ westport_geo <- westport_geo %>%
     ASSESSMENT_UNIT_NAME %in% c("Stony Brook (Westport)-01", "Stony Brook (Westport/Norwalk/Wilton)-02") ~ "Stony Brook",
     
     .default = NA
-  ))
+  )) %>% 
+  
+  distinct() # remove duplicate Greens Farms
 
 st_write(westport_geo, "data/static_segments.geojson")
 

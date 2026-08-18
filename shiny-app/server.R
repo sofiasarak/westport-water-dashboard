@@ -72,8 +72,33 @@ server <- function(input, output, session) {
     
   })
   
-  # add filtered points ---
+# initialize reactive map elements (points and segments that change based on filters)
+  
   observe({
+    
+    #................add static, gray river geometries...............
+    
+    leafletProxy("map", data = static_segments) %>%
+      
+      clearGroup("static_rivers") %>%  # remove old lines
+      
+      addPolylines(popup = ~river_name, # show river name when clicked
+                   color = "gray",
+                   group = "static_rivers")  # add label to layer
+    
+    #...................add river geometries w data..................
+  
+    df_geos <- filtered_leaflet_geos()
+    
+    leafletProxy("map", data = df_geos) %>%
+      
+      clearGroup("data_rivers") %>%  # remove old lines
+      
+      addPolylines(popup = ~river, # show river name when clicked
+                   color = ~pal(percent_exceeded),
+                   group = "data_rivers") # add label to layer
+    
+    #......................add filtered points.......................
     
     df <- filtered_leaflet_df_ssm()
     
@@ -86,6 +111,7 @@ server <- function(input, output, session) {
       addCircleMarkers(
         lng = ~longitude,
         lat = ~latitude,
+        radius = 8, # default is 10
         layerId = ~site_name,   # unique per marker, ensures proper plotting
         color = ~pal(percent_exceeded),
         fillColor = ~pal(percent_exceeded),
@@ -94,7 +120,7 @@ server <- function(input, output, session) {
         popup = ~paste0("<strong>", site_name,"</strong> <br>SSM exceeded: ", round(percent_exceeded * 100), "% of the time")
       ) %>% 
       
-      # add legend
+      #...........................add legend...........................
       addLegend(
         position = "bottomright",
         pal = pal,
@@ -105,17 +131,7 @@ server <- function(input, output, session) {
         labFormat = labelFormat(suffix = "%", transform = function(x) x * 100) 
       )
     
-    #......................add river geometries......................
-    
-    df_geos <- filtered_leaflet_geos()
-    
-    leafletProxy("map", data = df_geos) %>%
-      
-      clearShapes() %>%  # remove old lines
-      
-      addPolylines(popup = ~river, # show river name when clicked
-                   color = ~pal(percent_exceeded)) 
-  })
+    })
   
   
   #...........set up clicked output to match river name (for table) ...........

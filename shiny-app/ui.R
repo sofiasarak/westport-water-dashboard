@@ -2,30 +2,34 @@
 ##                               user interface                             ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 # ---- dashboard header ----
 header <- dashboardHeader(
   
-  # title ----
-  title = "Westport Conservation Department",
-  titleWidth = 400 # adjust width of title box, ensuring complete text fits
-  
+  title = tagList(
+    tags$img(
+      src = "westport_logo.png",
+      height = "45px",
+      style = "vertical-align: middle; padding-right: 15px; padding-left: 15px;"
+    ),
+    tags$span(
+      "Conservation Department",
+      style = "font-weight: bold;
+               color: #04367B;
+               font-size: 18px;
+               line-height: 20px;
+               vertical-align: middle"
+    )
+  )
 )
+
 
 # --- dashboard sidebar ----
 sidebar <-  dashboardSidebar(
   
-  # sidebarMenu ----
-  sidebarMenu(
-    
-    menuItem(text = "Dashboard", 
-             tabName = "dashboard"), # identifier, how content will be linked
-             #icon = icon("star")), # from font awesome library
-    
-    menuItem(text = "About", tabName = "about") 
-             #icon = icon("gauge"))
-    
-  ) # END sidebarMenu
-  
+  # remove sidebar
+ disable = TRUE
+ 
 ) # END dashboardSidebar
 
 
@@ -36,27 +40,93 @@ years <- sort(unique(ssm$year))
 
 body <- dashboardBody( # theme always goes into body of the dashboard!
   
-  #use_theme("dashboard-fresh-theme.css"),
+  tags$head(
+    tags$style(HTML("
+      .main-header .logo {
+        height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 350px !important;
+      }
+
+      .main-header .navbar {
+        height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        margin-left: 350px !important;
+      }
+      
+       /* Blue area to the right */
+      .main-header .navbar {
+        margin-left: 350px !important;
+        background-color: #3C546B !important;
+      }
+
+      /* Make sure the whole header is blue */
+      .main-header {
+        background-color: #3C546B !important;
+      }
+      
+      /* Slider year popup */
+    .irs-single {
+      background-color: #04367B !important;
+      color: white !important;
+    }
+
+    /* Triangle underneath popup */
+    .irs-single:before {
+      border-top-color: #04367B !important;
+    }
+      
+    /* Slider selected portion */
+      .irs-bar {
+        background-color: #3C546B !important;
+        border-top-color: #3C546B !important;
+        border-bottom-color: #3C546B !important;
+      }
+
+    /* Small part at the beginning of the selected bar */
+      .irs-bar-edge {
+        background-color: #3C546B !important;
+        border-color: #3C546B !important;
+}
+      
+      /* Hyperlink color */
+      
+      a {
+      color: #E24C17 !important;
+    }
+      
+    "))
+  ),
   
-  tabItems(
-    
-    # welcome tabItem ----
-    tabItem(
-      
-      tabName = "dashboard", # will know that everything I build here should show up on dashboard tab
-      
-     # top block (map, text, and inputs)
+  use_theme("westport-theme.css"),
+  
       fluidRow(
+        
+        h2("Explore the health of Westport streams over time",
+           style = "color: #3C546B;
+                    font-weight: bold;
+                    margin-left: 30px;"),
+        
+        br(),
         
         # left-hand column ----
         column(
         
         width = 8,
+
         
         # leaflet map
         box(width = NULL, # tells it to inheret the width of the column
             
-            title = tagList(icon("water"), strong("Westport Stream Quality")),
+            title = tagList(
+              tags$span(
+                "Pan and click around the map to view data.",
+                style = "font-weight: normal;
+                         color: #000000"
+              )
+            ),
             
            
            # leaflet map
@@ -64,7 +134,7 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
            
            
            # map disclaimer
-           div(style = "font-size: 12px;", includeMarkdown("text/map_disclaimer.Rmd"))
+           div(style = "font-size: 13px;", includeMarkdown("text/map_disclaimer.Rmd"))
         )  # END leaflet box
         
       ), # END lefthand column
@@ -73,19 +143,19 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
       column(width = 4,
              
              # input intro text
-             div(style = "font-size: 14.5px;", includeMarkdown("text/inputs_intro.Rmd")),
+             div(style = "font-size: 16.5px;", includeMarkdown("text/inputs_intro.Rmd")),
              
              # data filter inputs box ----
              box(width = NULL,
                  
                  # year slider
-                 sliderInput("year", "Select year", min = min(years), max = max(years),
+                 sliderInput("year", "Year", min = min(years), max = max(years),
                              value = min(years), step = 1, sep = "", animate = animationOptions(interval = 500)),
                  
                 # dropdown to pick river
                  pickerInput(
                    inputId  = "river_name",
-                   label    = "Select stream",
+                   label    = "Stream(s)",
                    choices  = unique(westport_geo$river),
                    multiple = TRUE,
                    options  = pickerOptions(liveSearch = TRUE, actionsBox = TRUE))
@@ -93,7 +163,16 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
              ), # end data filter inputs box
              
              # text about using ssm
-             div(style = "font-size: 14.5px;", includeMarkdown("text/about_ssm.Rmd"))
+             div(style = "font-size: 16.5px;", 
+             
+                 # change color of heading
+             tags$style("
+    h3 {
+      color: #3C546B;
+      font-weight: bold;
+    }
+  "),
+             includeMarkdown("text/about_ssm.Rmd"))
            
              
       ) # END right-hand column
@@ -112,13 +191,15 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
          width = NULL,
          
          # text telling user to click on points
-         div(style = "font-size: 14px;", includeMarkdown("text/table_output_intro.Rmd")),
+         div(style = "font-size: 16.5px;", includeMarkdown("text/table_output_intro.Rmd")),
          
          # header
-         h4(strong(textOutput("table_heading"))),
+         h4(strong(textOutput("table_heading")),
+            style = "color: #3C546B;
+                    font-weight: bold;"),
          
          # bacteria units
-         div(style = "font-size: 14px;", includeMarkdown("text/bacteria_units_table.Rmd")),
+         div(style = "font-size: 16.5px;", includeMarkdown("text/bacteria_units_table.Rmd")),
          
          # table
          DTOutput("table")
@@ -126,28 +207,18 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
        
        ) # end column
        
-     ) # END second fluid row
-      
-    ), # END welcome tabItem
-    
-    # about tabItem ----
-    tabItem(
-      
-      tabName = "about",
-      
-      # input box ----
-      box(
-        
-        width = 4, # screens are broken up into units of 12, so this is always out of 12
-        
-        title = tags$strong("About") # strong = bold
-        
-            ) # END input box
-      
-    ) # END dashboard tabItem
-    
-  ) # END tabItems
+     ), # END second fluid row
+
   
+  # initialize third fluid row (for GitHub info and source)
+  fluidRow(
+    
+    br(),
+    
+    div(style = "font-size: 13px;
+                margin-left: 800px;", includeMarkdown("text/source_and_code.Rmd"))
+  )
+      
 ) # END dashboardBody
 
 

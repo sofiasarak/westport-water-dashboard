@@ -3,6 +3,4 @@ title: "inputs_intro"
 output: html_document
 ---
 
-### Explore the health of Westport streams over time
-
 Select a year and specific streams below. Alternatively, click the blue triangle to watch the map automatically play through time.

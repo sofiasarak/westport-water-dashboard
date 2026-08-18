@@ -13,6 +13,7 @@ library(shinyWidgets)
 library(DT)
 library(plotly)
 library(shinydashboard)
+library(fresh)
 
 #..........................read in data..........................
 # static segments
