@@ -47,15 +47,19 @@ westport  <- westport %>%
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                         find when ssm was exceeded                       ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 westport <- westport %>% 
-  
-  # create binary column for exceeded or not (1 = exceeded)
-  mutate(exceed_ssm = case_when(
-    indicator == "e.coli" & conc > 126 ~ 1,
-    indicator == "entero" & conc > 35 ~ 1,
-    .default = 0
-  ))
+  mutate(
+    
+    # create binary column for exceeded or not (1 = exceeded)
+    exceed_ssm = case_when(
+      indicator == "e.coli" & is.na(conc) ~ NA_real_,
+      indicator == "entero" & is.na(conc) ~ NA_real_,
+      indicator == "e.coli" & conc > 126 ~ 1,
+      indicator == "entero" & conc > 35 ~ 1,
+      .default = 0
+    )
+  )
+
 
 # summarize by summing the number of times SSM was exceeded for each site, for each year
 ssm <- westport %>% 

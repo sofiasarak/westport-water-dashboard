@@ -175,6 +175,16 @@ server <- function(input, output, session) {
       # remove columns that are entirely NA
       select(where(~ !all(is.na(.)))) %>% 
       
+      # adjust sampling site order
+      mutate(
+        site_name = factor(
+          site_name,
+          levels = site_order[[clicked_river()]] # reference list of levels for spec river
+        )
+      ) %>% 
+      
+      arrange(site_name) %>% 
+      
       # order date columns numerically
       select(site_name, indicator, sort(names(.)[-c(1,2)])) %>% 
       
@@ -193,7 +203,8 @@ server <- function(input, output, session) {
       # table details
       rownames = FALSE, # remove row numbers
       width = "100%",
-      options = list(scrollX = TRUE, # scroll to see additional columns
+      options = list(paging = FALSE, # remove pagination ("Previous, 1" etc.)
+                     scrollX = TRUE, # scroll to see additional columns
                      pageLength = 15,  # removes need to click onto other page to see all sites
                      dom = 'rtip', # remove search bar and length dropdown
                      

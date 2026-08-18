@@ -56,6 +56,4 @@ joined <- split_result %>%
 joined <- st_transform(joined, crs = 4326)
 
 # save file
-st_write(joined, "data/checkpoint3.geojson")
-
-# st_write(segments, "data/ssm_segments.geojson")
+st_write(joined, "data/ssm_segments.geojson")

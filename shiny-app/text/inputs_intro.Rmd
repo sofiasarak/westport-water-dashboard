@@ -3,4 +3,4 @@ title: "inputs_intro"
 output: html_document
 ---
 
-Select a year and specific streams below. Alternatively, click the blue triangle to watch the map automatically play through time.
+Select a year and specific streams below. Alternatively, click the orange triangle to watch the map automatically play through time.

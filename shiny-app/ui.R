@@ -132,6 +132,7 @@ body <- dashboardBody( # theme always goes into body of the dashboard!
            # leaflet map
            leafletOutput("map", height = 700),
            
+           br(),
            
            # map disclaimer
            div(style = "font-size: 13px;", includeMarkdown("text/map_disclaimer.Rmd"))

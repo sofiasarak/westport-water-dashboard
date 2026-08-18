@@ -20,7 +20,7 @@ library(fresh)
 static_segments <- read_sf(here("data", "static_segments.geojson"))
 
 # segments w yearly data
-ssm_segments <- read_sf(here("data", "checkpoint3.geojson"))
+ssm_segments <- read_sf(here("data", "ssm_segments.geojson"))
 
 # bacteria summary (ssm)
 ssm <- read_csv(here("data", "ssm.csv")) 
@@ -96,5 +96,16 @@ westport_geo <- sampling_years %>%
 names(st_geometry(westport_geo)) = NULL
 
 
-# test geo
-# river_conc_test <- read_sf(here("data", "river_conc_test.geojson")) # takes a few secs
+#...................create sampling site order...................
+site_order <- list(
+  
+  # most leftmost site will show up on TOP of table
+  "Indian River" = c("Indian 3.1", "Indian 3", "Indian 2", "Indian 1.75", "Indian 1.5", "Indian 1"),
+  "Saugatuck River" = c("West Saug 1.5", "West Saug 1", "Saugatuck 2", "Saugatuck 1", "SG1", "Saugatuck 0.75", "Saugatuck 0.5", "Saugatuck 0.25", "Poplar 4", "Poplar 3", "Poplar 2", "Poplar 1.5", "Poplar 1"),
+  "Pussy Willow Brook" = c("Pussy Willow 5", "Pussy Willow 4", "Pussy Willow 3", "Pussy Willow 2.5", "Pussy Willow 2", "Pussy Willow 1", "Lamplight 1"),
+  "Muddy Brook" = c("Muddy 6", "Muddy 5", "Muddy 4", "Muddy 3", "Muddy 2", "Muddy 1"),
+  "Sasco Brook" = c("Sasco 9", "Hunt Club 5", "Hunt Club 4", "Hunt Club 3", "Hunt Club 2", "Hunt Club 1", "Sasco 8", "Sasco 7", "Sasco 6", "Sasco 5", "Sasco 4", "Sasco 3", "Sasco 2", "Sasco 1"),
+  "Deadman Brook" = c("Deadman 9", "Deadman 8", "Deadman 7.3", "Deadman 7.1", "Deadman 7", "Deadman 6", "Deadman 5", "Deadman 4", "Deadman 3.5", "Deadman 3", "Deadman 2", "Deadman 1", 'Deadman 0.5'),
+  "Greens Farms Brook" = c("New 4", "New 3", "New 2", "New 1.5", "New 1", "New 0.5"),
+  "Stony Brook" = c("Stony 5", "Stony 4", "Stony 3", "Stony 2", "Stony 1", "Stony 1.5")
+)
