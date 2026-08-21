@@ -1,6 +1,0 @@
----
-title: "map_disclaimer"
-output: html_document
----
-
-<strong><em>Disclaimer:</em></strong> <em>While the values and colors associated with the circle markers are accurate (representing samples taken at the exact location), stream values are assigned based on surrounding sampling sites. For this reason, treat stream values and colors (between sampling points) as estimates.</em>

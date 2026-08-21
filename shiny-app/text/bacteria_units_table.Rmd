@@ -1,6 +1,0 @@
----
-title: "bacteria_units_table"
-output: html_document
----
-
-Bacteria concentrations are displayed in Most Probable Number (MPN) / 100 mL and colored in <span style="color: red; font-weight: bold;">red</span> when the SSM is exceeded.

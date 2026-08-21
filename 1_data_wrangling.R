@@ -1,0 +1,216 @@
+library(readxl)
+library(here)
+library(tidyverse)
+library(janitor)
+
+# read in data (downloaded from www.earthplace.org/data-projects/)
+raw <- read_excel(here("data", "raw", "Harbor-Watch-Long-Term-Analysis-Data-File.xlsx"), sheet = "All Data (May-Sept)") %>% 
+  
+  # change column names to all lowercase
+  clean_names() 
+
+# 2024/25 (recent) data only public available in pdf reports, so has to be inputted separately
+recent <- read_csv(here("data", "raw", "recent_harborwatch.csv")) %>% 
+  
+  clean_names() %>% 
+  
+  # convert to numeric
+  mutate(actual_and_estimated_e_coli_100m_l = as.numeric(actual_and_estimated_e_coli_100m_l),
+         enterococci_100_m_l = as.numeric(enterococci_100_m_l)) %>% 
+  
+  # convert date column to date time
+  mutate(date = parse_date_time(date, orders = c("mdy", "ymd")))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##              select necessary columns and filter for westport            ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# create vector that contains westport sampling site names
+westport_sites <- c("Indian", "Stony", "SG1", "Saugatuck", "West Saug",
+                    "Poplar", "Deadman", "Apetuck 1", "Apetuck 2", "Apetuck 3",
+                    "Muddy", "New", "Lamplight", "Pussy Willow", "Sasco", "Hunt Club")
+
+# towns are listed in the variable `towns` - we will select rows where "Westport" is listed as one of the towns
+westport <- raw %>% 
+  
+  filter(str_detect(towns, "Westport")) %>% 
+  
+  # select for only westport sampling site names (removes trackdown projects, etc)
+  filter(str_detect(site_name, paste(str_escape(westport_sites), collapse = "|")))
+
+# select only the variables we need for our leaflet
+westport <- westport %>% 
+  
+  select(site_name, date, year, month,
+         actual_and_estimated_e_coli_100m_l,
+         enterococci_100_m_l, latitude, longitude)
+
+#....................join 2024 and 2025 data.....................
+
+westport <- westport %>% 
+  bind_rows(recent)
+  
+
+# pivot to long format
+westport  <- westport %>% 
+  
+  # shorten column names
+  rename("e.coli" = actual_and_estimated_e_coli_100m_l,
+         "entero" = enterococci_100_m_l) %>% 
+  
+  pivot_longer(cols = c(e.coli, entero),
+               names_to = "indicator",
+               values_to = "conc") 
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                         find when ssm was exceeded                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+westport <- westport %>% 
+  mutate(
+    
+    # create binary column for exceeded or not (1 = exceeded)
+    exceed_ssm = case_when(
+      indicator == "e.coli" & is.na(conc) ~ NA_real_,
+      indicator == "entero" & is.na(conc) ~ NA_real_,
+      indicator == "e.coli" & conc > 126 ~ 1,
+      indicator == "entero" & conc > 35 ~ 1,
+      .default = 0
+    )
+  )
+
+
+# summarize by summing the number of times SSM was exceeded for each site, for each year
+ssm <- westport %>% 
+  group_by(year, site_name) %>%  # add indicator
+  
+  # create a times exceeded column as well as
+  summarize(times_exceeded = sum(exceed_ssm, na.rm = TRUE),
+            
+            # percent of times exceeded         
+            percent_exceeded = times_exceeded / sum(!is.na(exceed_ssm)))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                            find site max by year*                         ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# max <- westport %>% 
+#   
+#   group_by(year, site_name) %>% 
+#   
+#   summarize(max = max(conc, na.rm = TRUE))
+
+# *this variable does not end up being used in the final dashboard
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                 add coordinates back in based on site name               ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# select only site_names and their coords
+westport_coords <- westport %>% 
+  
+  select(site_name, latitude, longitude)
+
+# joining removed lat and long columns so we are able to plot sites
+ssm <- ssm %>% 
+  
+  left_join(westport_coords, by = "site_name") %>% 
+  
+  # keep only unique rows
+  distinct()
+
+# max <- max %>% 
+#   
+#   left_join(westport_coords, by = "site_name") %>% 
+#   distinct()
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                    assign sampling sites to river names                  ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ssm
+
+ssm <- ssm %>% 
+  
+  mutate(river_name = case_when(
+    
+    # indian
+    str_detect(site_name, "Indian") ~ "Indian River",
+    
+    # sasco
+    str_detect(site_name, "Sasco|Hunt|Great") ~ "Sasco Brook",
+    
+    # saugatuck
+    str_detect(site_name, "Poplar|SG|Saug") ~ "Saugatuck River",
+    
+    # green farms
+    str_detect(site_name, "New") ~ "Greens Farms Brook",
+    
+    # muddy
+    str_detect(site_name, "Muddy") ~ "Muddy Brook",
+    
+    # pussy willow
+    str_detect(site_name, "Pussy|Lamplight") ~"Pussy Willow Brook",
+    
+    # deadman
+    str_detect(site_name, "Deadman") ~ "Deadman Brook", 
+    
+    # stony
+    str_detect(site_name, "Stony") ~"Stony Brook",
+    
+    .default = NA))
+
+# do the same but with all data
+westport <- westport %>% 
+  
+  mutate(river_name = case_when(
+    
+    # indian
+    str_detect(site_name, "Indian") ~ "Indian River",
+    
+    # sasco
+    str_detect(site_name, "Sasco|Hunt|Great") ~ "Sasco Brook",
+    
+    # saugatuck
+    str_detect(site_name, "Poplar|SG|Saug") ~ "Saugatuck River",
+    
+    # green farms
+    str_detect(site_name, "New") ~ "Greens Farms Brook",
+    
+    # muddy
+    str_detect(site_name, "Muddy") ~ "Muddy Brook",
+    
+    # pussy willow
+    str_detect(site_name, "Pussy|Lamplight") ~"Pussy Willow Brook",
+    
+    # deadman
+    str_detect(site_name, "Deadman") ~ "Deadman Brook", 
+    
+    # stony
+    str_detect(site_name, "Stony") ~"Stony Brook",
+    
+    .default = NA))
+
+# some more cleaning (keep only necessary columns)
+westport <- westport %>% 
+  
+  select(site_name, date, indicator, conc, river_name, year) %>% 
+  
+  # drop if conc == NA 
+  filter(!is.na(conc)) %>% 
+  
+  # round conc values
+  mutate(conc = round(conc)) %>% 
+  
+  # create date with no year column
+  mutate(date_no_year = str_remove(date, "^.{5}"))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                  save files                              ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# data points by year (for plotting)
+write_csv(ssm, "data/ssm.csv") 
+# write_csv(max, "data/max.csv")
+
+# all data points with no geoms (for table)
+write_csv(westport, "data/all_westport.csv")

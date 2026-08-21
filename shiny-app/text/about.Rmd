@@ -1,6 +1,0 @@
----
-title: "about"
-output: html_document
----
-
-Harbor Watch, a water quality monitoring nonprofit based in Westport, has been sampling streams in Fairfield County since 1995.

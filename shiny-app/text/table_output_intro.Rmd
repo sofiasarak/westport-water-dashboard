@@ -1,6 +1,0 @@
----
-title: "table_output_intro"
-output: html_document
----
-
-### Click on any of the sampling points above to view bacteria concentrations for that river over an entire sampling season.

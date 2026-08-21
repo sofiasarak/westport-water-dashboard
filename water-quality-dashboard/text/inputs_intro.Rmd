@@ -1,0 +1,7 @@
+---
+title: "inputs_intro"
+output: html_document
+---
+
+Select a year and specific streams below. Alternatively, click the orange triangle to watch the map play through time.
+

@@ -1,6 +1,0 @@
----
-title: "source_and_code"
-output: html_document
----
-
-*This app was created by [Sofia Sarak](https://github.com/sofiasarak) in August 2026 using data from [Harbor Watch](https://earthplace.org/data-projects/). Please report [any issues](https://github.com/sofiasarak/westport-water-dashboard/issues). Source code can be found on [GitHub](https://github.com/sofiasarak/westport-water-dashboard).*
