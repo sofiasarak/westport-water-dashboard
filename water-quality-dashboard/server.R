@@ -65,7 +65,8 @@ server <- function(input, output, session) {
     
     leaflet() %>%
       
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      # change base map so it survives updates
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>% 
       
       # set initial zoom
       setView(lng = -73.33419, lat = 41.16502, zoom = 12) 
