@@ -9,7 +9,7 @@ Creating an interactive dashboard showing changes in Westport's urban stream wat
 
 `3_segmentize.R`: Creates segments from the Westport river geometries and attaches single sample maximum (percent exceeded) to them.
 
-`water-quality-dashboard`: Contains `ui.R`, `server.R`, and `global.R` –– all components of the Shiny Dashboard.
+**water-quality-dashboard**: Contains `ui.R`, `server.R`, and `global.R` –– all components of the Shiny Dashboard.
 
 ## Data Sources
 
