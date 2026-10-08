@@ -3,13 +3,13 @@ Creating an interactive dashboard showing changes in Westport's urban stream wat
 
 ## Repository Contents
 
-**1_data_wrangling.R**: Calculates the percent of sampling sites that exceed the single sample maximum each year, by river.
+`1_data_wrangling.R`: Calculates the percent of sampling sites that exceed the single sample maximum each year, by river.
 
-**2_river_geoms.R**: Combines Westport river geometries into one and adds associated sampling years.
+`2_river_geoms.R`: Combines Westport river geometries into one and adds associated sampling years.
 
-**3_segmentize.R**: Creates segments from the Westport river geometries and attaches single sample maximum (percent exceeded) to them.
+`3_segmentize.R`: Creates segments from the Westport river geometries and attaches single sample maximum (percent exceeded) to them.
 
-**water-quality-dashboard**: Contains `ui.R`, `server.R`, and `global.R` –– all components of the Shiny Dashboard.
+`water-quality-dashboard`: Contains `ui.R`, `server.R`, and `global.R` –– all components of the Shiny Dashboard.
 
 ## Data Sources
 
